@@ -3,6 +3,15 @@ import curses
 from curses import wrapper
 import random
 
+ex_grid = [[5, 3, 0, 0, 7, 0, 0, 0, 0],
+             [6, 0, 0, 1, 9, 5, 0, 0, 0],
+             [0, 9, 8, 0, 0, 0, 0, 6, 0],
+             [8, 0, 0, 0, 6, 0, 0, 0, 3],
+             [4, 0, 0, 8, 0, 3, 0, 0, 1],
+             [7, 0, 0, 0, 2, 0, 0, 0, 6],
+             [0, 6, 0, 0, 0, 0, 2, 8, 0],
+             [0, 0, 0, 4, 1, 9, 0, 0, 5],
+             [0, 0, 0, 0, 8, 0, 0, 7, 9]]
 
 class Solver:
     def __init__(self):
@@ -15,6 +24,11 @@ class Solver:
                      [0, 6, 0, 0, 0, 0, 2, 8, 0],
                      [0, 0, 0, 4, 1, 9, 0, 0, 5],
                      [0, 0, 0, 0, 8, 0, 0, 7, 9]]
+
+        self.solutions = 0
+
+    def reset_grid(self):
+        self.grid = [list(np.zeros(9, dtype=int)) for _ in range(9)]
 
     def show_solve(self, y, x, n, stdscr):
         stdscr.clear()
@@ -69,6 +83,89 @@ class Solver:
         if show:
             print(np.matrix(self.grid))
             input('more?')
+        else:
+            # self.solutions += 1
+            return True
+
+    def find_empty(self):  # finds the first empty space in the board, which is represented by a 0
+        for y in range(9):
+            for x in range(9):
+                if self.grid[y][x] == 0:
+                    return y, x
+        return False
+
+
+    def generate_grid(self):
+        pass
+
+    def check_grid(self):
+        for y in range(9):
+            for x in range(9):
+                if self.grid[y][x] == 0:
+                    return False
+        return True
+
+    def generate_random_grid(self):
+        self.reset_grid()
+
+        lst = list(range(1, 10))
+        for y in range(3):
+            for x in range(3):
+                n = random.choice(lst)
+                self.grid[y][x] = n
+                lst.remove(n)
+
+        lst = list(range(1, 10))
+        for y in range(3, 6):
+            for x in range(3, 6):
+                n = random.choice(lst)
+                self.grid[y][x] = n
+                lst.remove(n)
+
+        lst = list(range(1, 10))
+        for y in range(6, 9):
+            for x in range(6, 9):
+                n = random.choice(lst)
+                self.grid[y][x] = n
+                lst.remove(n)
+
+        return self.fill_grid()
+
+    def fill_grid(self):  # uses recursion to finish generating a random board
+        print(np.matrix(self.grid))
+        for y in range(9):
+            for x in range(9):
+                if self.grid[y][x] == 0:
+                    n = random.randint(1, 9)
+
+                    if self.possible(y, x, n):
+                        self.grid[y][x] = n
+
+                        if self.solve():
+                            self.fill_grid()
+                            return self.grid
+
+                        self.grid[y][x] = 0
+        return False
+
+    def remove_number(self):
+        while True:
+            y = random.randrange(9)
+            x = random.randrange(9)
+            n = self.grid[y][x]
+            if n != 0:
+                break
+
+        self.grid[y][x] = 0
+        self.solve()
+        if self.solutions == 0:
+            self.grid[y][x] = n
+        elif self.solutions > 1:
+            self.remove_number()
+        return
+
+
+
 
 
 def main(stdscr):
@@ -85,7 +182,8 @@ def main(stdscr):
 # or to only show solution run:
 # Solver().show_solution()
 
-
+"""Sudoku Generator"""
+Solver().generate_random_grid()
 
 
 
