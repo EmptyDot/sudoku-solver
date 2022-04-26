@@ -56,19 +56,16 @@ class Solver:
                     self.stdscr.addstr(i, j*3, str(self.grid[i][j]), WHITE)
         self.stdscr.refresh()
 
-    def possible(self, y, x, n):
+    def possible(self, y, x, n, grid):
+        for i in range(9):
+            if grid[y][i] == n or grid[i][x] == n:
+                return False
 
-        for i in range(9):
-            if self.grid[y][i] == n:
-                return False
-        for i in range(9):
-            if self.grid[i][x] == n:
-                return False
         x0 = (x//3) * 3
         y0 = (y//3) * 3
         for i in range(3):
             for j in range(3):
-                if self.grid[y0+i][x0+j] == n:
+                if grid[y0+i][x0+j] == n:
                     return False
         return True
 
@@ -77,26 +74,20 @@ class Solver:
             for x in range(9):
                 if self.grid[y][x] == 0:
                     for n in range(1, 10):
-                        if self.possible(y, x, n):
+                        if self.possible(y, x, n, self.grid):
                             self.grid[y][x] = n
                             self.update(y, x, n, info='Solving...')
                             self.solve()
-
                             if self.is_filled():
-                                self.solutions += 1
                                 return
 
                             self.grid[y][x] = 0
                             self.update(y, x, n, info='Solving...')
                     return
 
-
-
-
     def generate_grid(self):
-        self.fill_square(0, 3)
-        self.fill_square(3, 6)
-        self.fill_square(6, 9)
+        for i in range(0, 3, 3):
+            self.fill_square(i, i+3)
         self.fill_grid()
         self.remove_number()
         self.draw_grid()
@@ -121,11 +112,11 @@ class Solver:
                     nums = list(range(1, 10))
                     random.shuffle(nums)
                     for n in nums:
-                        if self.possible(y, x, n):
+                        if self.possible(y, x, n, self.grid):
                             self.grid[y][x] = n
                             self.update(y, x, n, info='Filling...')
-                            self.solutions = 0
-                            self.solve()
+
+                            self.set_n_solutions()
                             if self.solutions:
                                 self.fill_grid()
                                 if self.is_filled():
@@ -133,6 +124,7 @@ class Solver:
                             self.grid[y][x] = 0
                             self.update(y, x, n, info='Filling...')
                     return
+        return
 
     def is_filled(self):
         for y in range(9):
@@ -142,25 +134,50 @@ class Solver:
         return True
 
     def remove_number(self):
+        """
+        removes random numbers until there is only one solution
+        """
+
         while True:
+            # find a random space which is not empty
             y = random.randrange(9)
             x = random.randrange(9)
             n = self.grid[y][x]
             if n != 0:
                 break
 
-        self.grid[y][x] = 0
-        _copy = copy.deepcopy(self.grid)
-
+        self.grid[y][x] = 0  # make space empty
         self.update(y, x, 0, info=f'Removing...')
-        self.solutions = 0
-        self.solve()
-        if self.solutions:
-            self.grid = _copy
-            self.remove_number()
-        else:
+        self.set_n_solutions()  # solve to get number of solutions
+
+        if self.solutions >= 1:
+            self.remove_number()  # keep going
+        elif self.solutions == 0:  
             self.update(y, x, n, info=f'Removing...')
-        return
+            self.grid[y][x] = n  # revert change
+            self.remove_number()  # try another number
+
+    def set_n_solutions(self):
+        """
+        rewrites self.solutions
+        """
+
+        _copy = copy.deepcopy(self.grid)
+        self.solutions = 0
+        self.solve_for_solutions(_copy)
+        self.solutions -= 1
+
+    def solve_for_solutions(self, grid):
+        for y in range(9):
+            for x in range(9):
+                if grid[y][x] == 0:
+                    for n in range(1, 10):
+                        if self.possible(y, x, n, grid):
+                            grid[y][x] = n
+                            self.solve_for_solutions(grid)
+                            grid[y][x] = 0
+                    return
+        self.solutions += 1
 
 
 def main(stdscr):
@@ -168,10 +185,8 @@ def main(stdscr):
     curses.init_pair(2, curses.COLOR_WHITE, curses.COLOR_BLACK)
     stdscr.clear()
     s = Solver(stdscr)
-
-
-
-    s.draw_grid()
+    stdscr.getch()
+    s.solve()
     stdscr.getch()
 
 # to show the solve:
