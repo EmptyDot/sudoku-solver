@@ -29,7 +29,12 @@ class Solver:
         else:
             self.grid = grid
 
-    def draw_grid(self, info=''):
+    def draw_grid(self, info: str = ''):
+        """
+        show self.grid in the terminal
+        :param info: status message to show in the terminal
+        :return:
+        """
         WHITE = curses.color_pair(2)
 
         if info:
@@ -41,7 +46,14 @@ class Solver:
                 self.stdscr.addstr(i, j*3, str(self.grid[i][j]), WHITE)
         self.stdscr.refresh()
 
-    def update(self, y, x, n, info=''):
+    def update(self, y: int, x: int, n: int, info: str = ''):
+        """
+        update the terminal to show a change in self.grid
+        :param y: y-coordinate in the grid (0-8)
+        :param x: x-coordinate in the grid (0-8)
+        :param n: a number to update to (1-9)
+        :param info: status message to show in the terminal
+        """
         if self.sleep:
             time.sleep(self.sleep)
 
@@ -60,7 +72,15 @@ class Solver:
                     self.stdscr.addstr(i, j*3, str(self.grid[i][j]), WHITE)
         self.stdscr.refresh()
 
-    def possible(self, y, x, n, grid):
+    def possible(self, y: int, x: int, n: int, grid):
+        """
+        checks if a number can be placed at the specified position
+        :param y: y-coordinate in the grid (0-8)
+        :param x: x-coordinate in the grid (0-8)
+        :param n: a number to check (1-9)
+        :param grid: the grid to check
+        :return: boolean
+        """
         for i in range(9):
             if grid[y][i] == n or grid[i][x] == n:
                 return False
@@ -74,6 +94,9 @@ class Solver:
         return True
 
     def solve(self):
+        """
+        solves self.grid
+        """
         for y in range(9):
             for x in range(9):
                 if self.grid[y][x] == 0:
@@ -90,15 +113,23 @@ class Solver:
                     return
 
     def generate_grid(self):
+        """
+        fills an empty 9x9 grid and removes the most possible numbers while still having only one solution
+        """
         for i in range(0, 9, 3):
-            self.fill_square(i, i+3)
+            self.fill_box(i, i + 3)
         self.fill_grid()
         self.remove_boxes()
         self.draw_grid(info='Grid generation done!\nPress any key to show solve.')
         self.stdscr.getch()
         return
 
-    def fill_square(self, start, stop):
+    def fill_box(self, start: int, stop: int):
+        """
+        fills a 3x3 box with random numbers.
+        :param start: integer: top left corner of the box is (start, start)
+        :param stop: integer: bottom right corner of the box is (stop, stop)
+        """
         lst = list(range(1, 10))
 
         for y in range(start, stop):
@@ -110,6 +141,9 @@ class Solver:
         return
 
     def fill_grid(self):
+        """
+        fills self.grid with random but valid numbers.
+        """
         for y in range(9):
             for x in range(9):
                 if self.grid[y][x] == 0:
@@ -129,7 +163,10 @@ class Solver:
                     return
         return
 
-    def is_filled(self):
+    def is_filled(self) -> bool:
+        """
+        checks if self.grid is full.
+        """
         for y in range(9):
             for x in range(9):
                 if self.grid[y][x] == 0:
@@ -138,7 +175,7 @@ class Solver:
 
     def set_n_solutions(self, as_bool=False):
         """
-        rewrites self.solutions
+        make a copy of self.grid and pass it into the appropriate method.
         """
 
         _copy = copy.deepcopy(self.grid)
@@ -149,8 +186,10 @@ class Solver:
             self.solutions = 0
             self.solve_for_solutions(_copy)
 
-
     def solve_for_solutions(self, grid):
+        """
+        solve a copy of self.grid and sets self.solutions
+        """
         for y in range(9):
             for x in range(9):
                 if grid[y][x] == 0:
@@ -165,8 +204,10 @@ class Solver:
                     return
         self.solutions += 1
 
-
-    def is_solvable(self, grid):
+    def is_solvable(self, grid) -> bool:
+        """
+        checks if self.grid is solvable
+        """
         for y in range(9):
             for x in range(9):
                 if grid[y][x] == 0:
