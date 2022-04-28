@@ -17,12 +17,11 @@ ex_grid = [[5, 3, 0, 0, 7, 0, 0, 0, 0],
 
 
 class Solver:
-    def __init__(self, stdscr=None, n_empty=50, grid=None, sleep=0.0):
+    def __init__(self, stdscr=None, grid=None, sleep=0.0):
 
         self.solutions = 0
         self.sleep = sleep
         self.stdscr = stdscr
-        self.n_empty = n_empty
         if grid is None:
             self.grid = [list(np.zeros(9, dtype=int)) for _ in range(9)]
             self.generate_grid()
@@ -214,11 +213,9 @@ class Solver:
                     for n in range(1, 10):
                         if self.possible(y, x, n, grid):
                             grid[y][x] = n
-                            self.update(y, x, n, info='Checking...')
                             if self.is_solvable(grid):
                                 return True
                             grid[y][x] = 0
-                            self.update(y, x, n, info='Checking...')
                     return False
         return True
 
@@ -233,7 +230,6 @@ class Solver:
                         y = random.randrange(i, i+3)
                         x = random.randrange(j, j+3)
                         # check if square is filled
-
                         if self.grid[y][x] != 0:
                             break
                     # add square to the list for removal
