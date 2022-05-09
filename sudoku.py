@@ -30,7 +30,7 @@ class Solver:
 
     def draw_grid(self, info: str = ''):
         """
-        show self.grid in the terminal
+        Show self.grid in the terminal
         :param info: status message to show in the terminal
         """
         WHITE = curses.color_pair(2)
@@ -46,7 +46,7 @@ class Solver:
 
     def update(self, y: int, x: int, n: int, info: str = ''):
         """
-        update the terminal to show a change in self.grid
+        Update the terminal to show a change in self.grid
         :param y: y-coordinate in the grid (0-8)
         :param x: x-coordinate in the grid (0-8)
         :param n: a number to update to (1-9)
@@ -72,7 +72,7 @@ class Solver:
 
     def possible(self, y: int, x: int, n: int, grid):
         """
-        check if a number can be placed at the specified position.
+        Check if a number can be placed at the specified position.
         :param y: y-coordinate in the grid (0-8)
         :param x: x-coordinate in the grid (0-8)
         :param n: a number to check (1-9)
@@ -91,28 +91,37 @@ class Solver:
                     return False
         return True
 
+    def put(self, y: int, x: int, n: int, info: str = ''):
+        """
+        Change a number in grid and update the terminal.
+        :param y: y-coordinate in the grid (0-8)
+        :param x: x-coordinate in the grid (0-8)
+        :param n: a number to change (1-9)
+        :param info: status message to show in the terminal
+        """
+        self.grid[y][x] = n
+        self.update(y, x, n, info=info)
+
     def solve(self):
         """
-        solve self.grid
+        Solve self.grid
         """
         for y in range(9):
             for x in range(9):
                 if self.grid[y][x] == 0:
                     for n in range(1, 10):
                         if self.possible(y, x, n, self.grid):
-                            self.grid[y][x] = n
-                            self.update(y, x, n, info='Solving...')
+                            self.put(y, x, n, 'Solving...')
                             self.solve()
                             if self.is_filled():
                                 return
-                            self.grid[y][x] = 0
-                            self.update(y, x, n, info='Solving...')
+                            self.put(y, x, 0, 'Solving...')
                     return
         return
 
     def is_filled(self) -> bool:
         """
-        check if self.grid is full.
+        Check if self.grid is full.
         """
         for y in range(9):
             for x in range(9):
@@ -122,7 +131,7 @@ class Solver:
 
     def generate_grid(self):
         """
-        generate a solvable sudoku board.
+        Generate a solvable sudoku board.
         """
         for i in range(0, 9, 3):
             self.fill_box(i, i + 3)
@@ -134,7 +143,7 @@ class Solver:
 
     def fill_box(self, start: int, stop: int):
         """
-        fill a 3x3 box with random numbers.
+        Fill a 3x3 box with random numbers.
         :param start: integer: top left corner of the box is (start, start)
         :param stop: integer: bottom right corner of the box is (stop, stop)
         """
@@ -143,14 +152,13 @@ class Solver:
         for y in range(start, stop):
             for x in range(start, stop):
                 n = random.choice(lst)
-                self.grid[y][x] = n
-                self.update(y, x, n, info='Filling...')
+                self.put(y, x, n, 'Filling...')
                 lst.remove(n)
         return
 
     def fill_grid(self):
         """
-        fills self.grid with random but valid numbers.
+        Fill self.grid with random but valid numbers.
         """
         for y in range(9):
             for x in range(9):
@@ -159,20 +167,17 @@ class Solver:
                     random.shuffle(nums)
                     for n in nums:
                         if self.possible(y, x, n, self.grid):
-                            self.grid[y][x] = n
-                            self.update(y, x, n, info='Filling...')
+                            self.put(y, x, n, 'Filling...')
                             self.fill_grid()
                             if self.is_filled():
                                 return
-                            self.grid[y][x] = 0
-                            self.update(y, x, n, info='Filling...')
+                            self.put(y, x, 0, 'Filling...')
                     return
         return
 
     def remove_boxes(self):
         """
-        remove the most possible numbers while still having only one solution evenly distributed across all boxes.
-        :return:
+        Remove the most possible numbers while still having only one solution evenly distributed across all boxes.
         """
         squares = []
         while True:
@@ -194,8 +199,7 @@ class Solver:
                 y, x = random.choice(squares)
                 squares.remove((y, x))
                 n = self.grid[y][x]
-                self.grid[y][x] = 0  # make space empty
-                self.update(y, x, 0, info=f'Removing...')
+                self.put(y, x, 0, 'Removing...')
 
                 _copy = copy.deepcopy(self.grid)  # make a copy
 
@@ -204,13 +208,12 @@ class Solver:
 
                 if self.solutions > 1:
                     # revert the last step and return
-                    self.grid[y][x] = n
-                    self.update(y, x, n)
+                    self.put(y, x, n)
                     return
 
     def solve_for_solutions(self, grid):
         """
-        solve a copy of self.grid and set self.solutions
+        Solve a copy of self.grid and set self.solutions
         """
         for y in range(9):
             for x in range(9):
@@ -237,5 +240,6 @@ def main(stdscr, grid=None, sleep=0):
 # pass your own grid in or leave it as None to generate a grid
 # sleep is time to wait between each number changed (only used to see what is happening)
 # wrapper(main, grid=None, sleep=0)
-wrapper(main, sleep=0.02)
+if __name__ == '__main__':
+    wrapper(main, sleep=0.02)
 
