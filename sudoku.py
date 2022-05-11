@@ -17,13 +17,21 @@ ex_grid = [[5, 3, 0, 0, 7, 0, 0, 0, 0],
 
 class Solver(Grid):
     def __init__(self, stdscr, grid=None, sleep=0.0):
-        super().__init__(stdscr, sleep, grid)
+        super(Solver, self).__init__(stdscr, sleep, grid)
         self.solutions = 0
         if grid is None:
-            self.grid = [list(np.zeros(9, dtype=int)) for _ in range(9)]
+            self.grid = np.array(np.zeros(9**2, dtype=int)).reshape((9, 9))
             self.generate_grid()
         else:
             self.grid = grid
+
+    def solve_start(self):
+        """
+        Solve the grid and show it. To be called by user.
+        """
+        self.solve()
+        self.draw_grid(info='Done!')
+        self.stdscr.getch()
 
     def possible(self, y: int, x: int, n: int, grid):
         """
@@ -183,11 +191,7 @@ class Solver(Grid):
 
 
 def main(stdscr, grid=None, sleep=0):
-    stdscr.clear()
-    s = Solver(stdscr, grid=grid, sleep=sleep)
-    s.solve()
-    s.draw_grid(info='Done!')
-    stdscr.getch()
+    Solver(stdscr, grid=grid, sleep=sleep).solve_start()
 
 
 # pass your own grid in or leave it as None to generate a grid
@@ -195,4 +199,3 @@ def main(stdscr, grid=None, sleep=0):
 # wrapper(main, grid=None, sleep=0)
 if __name__ == '__main__':
     wrapper(main, sleep=0.02)
-

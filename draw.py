@@ -9,6 +9,8 @@ class Grid:
         self.sleep = sleep
         self.grid = grid
         curses.init_pair(1, curses.COLOR_RED, curses.COLOR_BLACK)
+        stdscr.clear()
+
 
     def update(self, y: int, x: int, n: int, info: str = ''):
         """
