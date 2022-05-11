@@ -1,9 +1,8 @@
 import numpy as np
-import curses
 from curses import wrapper
 import random
-import time
 import copy
+from draw import Grid
 
 ex_grid = [[5, 3, 0, 0, 7, 0, 0, 0, 0],
            [6, 0, 0, 1, 9, 5, 0, 0, 0],
@@ -16,59 +15,15 @@ ex_grid = [[5, 3, 0, 0, 7, 0, 0, 0, 0],
            [0, 0, 0, 0, 8, 0, 0, 0, 0]]
 
 
-class Solver:
-    def __init__(self, stdscr=None, grid=None, sleep=0.0):
-
+class Solver(Grid):
+    def __init__(self, stdscr, grid=None, sleep=0.0):
+        super().__init__(stdscr, sleep, grid)
         self.solutions = 0
-        self.sleep = sleep
-        self.stdscr = stdscr
         if grid is None:
             self.grid = [list(np.zeros(9, dtype=int)) for _ in range(9)]
             self.generate_grid()
         else:
             self.grid = grid
-
-    def draw_grid(self, info: str = ''):
-        """
-        Show self.grid in the terminal
-        :param info: status message to show in the terminal
-        """
-        WHITE = curses.color_pair(2)
-
-        if info:
-            self.stdscr.clear()
-            self.stdscr.addstr(9, 0, info)
-
-        for i, row in enumerate(self.grid):
-            for j, value in enumerate(row):
-                self.stdscr.addstr(i, j*3, str(self.grid[i][j]), WHITE)
-        self.stdscr.refresh()
-
-    def update(self, y: int, x: int, n: int, info: str = ''):
-        """
-        Update the terminal to show a change in self.grid
-        :param y: y-coordinate in the grid (0-8)
-        :param x: x-coordinate in the grid (0-8)
-        :param n: a number to update to (1-9)
-        :param info: status message to show in the terminal
-        """
-        if self.sleep:
-            time.sleep(self.sleep)
-
-        if info:
-            self.stdscr.clear()
-            self.stdscr.addstr(9, 0, info)
-
-        RED = curses.color_pair(1)
-        WHITE = curses.color_pair(2)
-
-        for i, row in enumerate(self.grid):
-            for j, value in enumerate(row):
-                if i == y and j == x:
-                    self.stdscr.addstr(y, x*3, str(n), RED)
-                else:
-                    self.stdscr.addstr(i, j*3, str(self.grid[i][j]), WHITE)
-        self.stdscr.refresh()
 
     def possible(self, y: int, x: int, n: int, grid):
         """
@@ -228,8 +183,6 @@ class Solver:
 
 
 def main(stdscr, grid=None, sleep=0):
-    curses.init_pair(1, curses.COLOR_RED, curses.COLOR_BLACK)
-    curses.init_pair(2, curses.COLOR_WHITE, curses.COLOR_BLACK)
     stdscr.clear()
     s = Solver(stdscr, grid=grid, sleep=sleep)
     s.solve()
