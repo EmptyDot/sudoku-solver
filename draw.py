@@ -5,11 +5,12 @@ import curses
 
 class Grid:
     def __init__(self, stdscr, sleep, grid):
-        self.stdscr = stdscr
         self.sleep = sleep
         self.grid = grid
-        curses.init_pair(1, curses.COLOR_RED, curses.COLOR_BLACK)
-        stdscr.clear()
+        if stdscr is not None:
+            self.stdscr = stdscr
+            curses.init_pair(1, curses.COLOR_RED, curses.COLOR_BLACK)
+            stdscr.clear()
 
 
     def update(self, y: int, x: int, n: int, info: str = ''):
@@ -23,9 +24,8 @@ class Grid:
         if self.sleep:
             time.sleep(self.sleep)
 
-        if info:
-            self.stdscr.clear()
-            self.stdscr.addstr(9, 0, info)
+        self.clear()
+        self.display_info(info, len(self.grid))
 
         RED = curses.color_pair(1)
 
@@ -43,12 +43,32 @@ class Grid:
         :param info: status message to show in the terminal
         """
 
-        if info:
-            self.stdscr.clear()
-            self.stdscr.addstr(9, 0, info)
+        self.clear()
+        self.display_info(info, len(self.grid))
 
         for i, row in enumerate(self.grid):
             for j, value in enumerate(row):
                 self.stdscr.addstr(i, j*3, str(self.grid[i, j]))
         self.stdscr.refresh()
+
+    def put(self, y: int, x: int, n: int, info: str = ''):
+        """
+        Change a number in grid and update the terminal.
+        :param y: y-coordinate in the grid (0-8)
+        :param x: x-coordinate in the grid (0-8)
+        :param n: a number to change (1-9)
+        :param info: status message to show in the terminal
+        """
+        self.grid[y, x] = n
+        self.update(y, x, n, info=info)
+
+    def display_info(self, info='', y=0):
+        self.stdscr.addstr(y, 0, info)
+
+    def clear(self):
+        self.stdscr.clear()
+
+    def refresh(self):
+        self.stdscr.refresh()
+
 
