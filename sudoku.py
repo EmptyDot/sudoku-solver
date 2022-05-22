@@ -54,17 +54,6 @@ class Solver(Grid):
                     return False
         return True
 
-    def put(self, y: int, x: int, n: int, info: str = ''):
-        """
-        Change a number in grid and update the terminal.
-        :param y: y-coordinate in the grid (0-8)
-        :param x: x-coordinate in the grid (0-8)
-        :param n: a number to change (1-9)
-        :param info: status message to show in the terminal
-        """
-        self.grid[y][x] = n
-        self.update(y, x, n, info=info)
-
     def solve(self):
         """
         Solve self.grid
@@ -188,7 +177,6 @@ class Solver(Grid):
                             grid[y][x] = 0
                     return
         self.solutions += 1
-
 
 def main(stdscr, grid=None, sleep=0):
     Solver(stdscr, grid=grid, sleep=sleep).solve_start()

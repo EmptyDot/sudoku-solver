@@ -7,8 +7,8 @@ class Grid:
     def __init__(self, stdscr, sleep, grid):
         self.sleep = sleep
         self.grid = grid
+        self.stdscr = stdscr
         if stdscr is not None:
-            self.stdscr = stdscr
             curses.init_pair(1, curses.COLOR_RED, curses.COLOR_BLACK)
             stdscr.clear()
 
@@ -62,7 +62,9 @@ class Grid:
         self.grid[y, x] = n
         self.update(y, x, n, info=info)
 
-    def display_info(self, info='', y=0):
+    def display_info(self, info='', y=None):
+        if y is None:
+            y = len(self.grid)
         self.stdscr.addstr(y, 0, info)
 
     def clear(self):
@@ -71,4 +73,6 @@ class Grid:
     def refresh(self):
         self.stdscr.refresh()
 
+    def highlight(self, y, x, info=''):
+        self.update(y, x, self.grid[y, x], info)
 

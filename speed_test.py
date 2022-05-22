@@ -28,7 +28,7 @@ def time_file(stdscr, filename, number=1000000):
         stdscr.refresh()
         stdscr.getch()
 
-wrapper(time_file, filename='sudoku_for_speed_test.py', number=100000)
+# wrapper(time_file, filename='sudoku_for_speed_test.py', number=100000)
 
 """
 number: 100000
@@ -39,3 +39,10 @@ std: 0.2406041492989288
 min: 0.002986699999837583
 max: 23.329247399999986
 """
+
+def compare_two(a: str, b: str, setup='pass'):
+    ta = timeit(a, setup)
+    tb = timeit(b, setup)
+    print(f'fastest: {a if ta == min(ta, tb) else b}\n'
+          f'a: {ta}\n'
+          f'b: {tb}\n')

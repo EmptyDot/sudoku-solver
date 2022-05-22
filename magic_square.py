@@ -146,7 +146,7 @@ class ParkerSquare(MagicSquare):
 
 if __name__ == "__main__":
     p = ParkerSquare()
-    p.run(500)
+    p.run(10000)
 
 """
 O(n**2)
@@ -165,4 +165,7 @@ you can construct any square S(t+3n) by taking S(t) and adding:
 for the case of the parker square, where all elements are square numbers (int(a)**2) 
      its absolutely impossible to construct a parker square P(t) of side length 3 where t < 9**2 since we would be 
         unable to fill the grid.
+checked numbers:
+    0-3141
+
 """
