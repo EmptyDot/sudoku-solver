@@ -35,7 +35,7 @@ class Color:
 
     def _get_pair(self, name: str):
         if name.upper() in self.pairs:
-            pair_number = self.pairs.index(name.upper())  # check if pair is initialized
+            pair_number = self.pairs.index(name.upper()) + 1  # check if pair is initialized
             return curses.color_pair(pair_number)
         else:
             raise NameError(f'{name.upper()} is not a recognized color pair')
@@ -79,7 +79,6 @@ class Grid(Color):
             super(Grid, self).__init__()
             stdscr.clear()
 
-
     def update(self, y: int, x: int, n: int, info: str = ''):
         """
         Update the terminal to show a change in self.grid
@@ -116,7 +115,7 @@ class Grid(Color):
         for i, row in enumerate(self.grid):
             for j, value in enumerate(row):
                 self.stdscr.addstr(i, j*3, str(self.grid[i, j]))
-        self.stdscr.refresh()
+        self.refresh()
 
     def put(self, y: int, x: int, n: int, info: str = ''):
         """
@@ -143,4 +142,21 @@ class Grid(Color):
 
     def highlight(self, y, x, info=''):
         self.update(y, x, self.grid[y, x], info)
+
+    def highlight_multiple(self, coords: list[tuple[int, int]], info: str = ''):
+
+        if self.sleep:
+            time.sleep(self.sleep)
+        for coord in coords:
+            y, x = coord
+            self.clear()
+            self.display_info(info, len(self.grid))
+
+            for i, row in enumerate(self.grid):
+                for j, value in enumerate(row):
+                    if i == y and j == x:
+                        self.stdscr.addstr(y, x*3, str(self.grid[i, j]), self.color('RED'))
+                    else:
+                        self.stdscr.addstr(i, j*3, str(self.grid[i, j]))
+            self.refresh()
 
