@@ -17,7 +17,7 @@ ex_grid = [[5, 3, 0, 0, 7, 0, 0, 0, 0],
 
 class Solver(Grid):
     def __init__(self, stdscr, grid=None, sleep=0.0):
-        super(Solver, self).__init__(stdscr, sleep, grid)
+        super(Solver, self).__init__(stdscr, grid, sleep)
         self.solutions = 0
         if grid is None:
             self.grid = np.array(np.zeros(9**2, dtype=int)).reshape((9, 9))

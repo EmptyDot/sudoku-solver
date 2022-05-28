@@ -5,6 +5,8 @@ import curses
 from curses import wrapper
 import random
 import time
+import copy
+
 
 ex_grid = [[5, 3, 0, 0, 7, 0, 0, 0, 0],
            [6, 0, 0, 1, 9, 5, 0, 0, 0],
@@ -23,17 +25,18 @@ class Wave(Solver):
         self.stdscr = stdscr
         super(Wave, self).__init__(stdscr=stdscr, grid=np.array(ex_grid), sleep=sleep)
         self.possibilities = [[[] for _ in range(9)] for _ in range(9)]
+        self.current_possibility = []
 
     def set_possibilities(self):
         """
-        Add all possible numbers of (y, x) to the list in the corresponding position.
+        Add all possible numbers (1-9) of (y, x) to the list in the corresponding position.
         """
         for y in range(9):
             for x in range(9):
-                self.possibilities[y][x] = self.update_possibilities((y, x))
+                self.possibilities[y][x] = self.update_possibilities(y, x)
 
-    def update_possibilities(self, coords):
-        y, x = coords
+    def update_possibilities(self, y, x):
+
         possible = []
         if self.grid[y][x] == 0:
             for n in range(1, 10):
@@ -65,12 +68,13 @@ class Wave(Solver):
             for x in range(9):
                 # print(f'{y=}, {x=}, {self.possibilities[y][x]}')
                 if len(self.possibilities[y][x]) == 1:
-                    """
-                    n = self.possibilities[y][x][0]
-                    if self.grid[y][x] != n:
-                        self.put(y, x, n)
-                    """
-                    continue
+                    if self.possibilities[y][x][0] != self.grid[y][x]:
+                        if smallest == 1:
+                            positions.append((y, x))
+                        else:
+                            smallest = 1
+                            positions = [(y, x)]
+
                 elif len(self.possibilities[y][x]) < smallest:
                     positions = [(y, x)]
                     smallest = len(self.possibilities[y][x])
@@ -84,78 +88,71 @@ class Wave(Solver):
     def iterate(self):
         """
         Gets called once per iteration. Collapses a cell and propagates the possibility to all affected cells.
-        :return:
         """
         self.draw_grid('New iteration')
-        coords = self.get_min_entropy_coords()
-        self.collapse_at(coords)
-        self.propagate(coords)
+        y, x = self.get_min_entropy_coords()
+        self.collapse_at(y, x)
+        self.propagate(y, x)
 
-    def collapse_at(self, coords):
+
+    def collapse_at(self, y, x):
         """
         Choose a possible number and put it in
-        :param coords:
-        :return:
         """
-        y, x = coords
-        try:
-            n = random.choice(self.possibilities[y][x])
-        except IndexError as exc:
-            self.clear()
-            curses.endwin()
-            time.sleep(1)
-            print(self.grid)
-
-            raise exc
+        self.current_possibility = copy.deepcopy(self.possibilities[y][x])
+        n = random.choice(self.possibilities[y][x])
         self.put(y, x, n, info=f'{y=}, {x=}, {self.possibilities[y][x]}')
         self.possibilities[y][x] = [n]
 
-    def propagate(self, coords):
+    def propagate(self, y, x):
         """
-        :param coords: y, x coordinates of a collapsed cell.
+        Propagate the changes from a collapsed cell to the rest of the grid
+
+        :param y:
+        :param x:
         :return:
         """
-        stack = [coords]  # maybe use deque?
+        stack = [(y, x)]  # maybe use deque?
         while len(stack) > 0:
-            cur_coords = stack.pop()
+            cur_y, cur_x = stack.pop()
             # get neighbours of cur_coords if along base_coords row or column or in the same box
-            for d in self.valid_dirs(cur_coords, coords):
+            for d in self.valid_dirs(cur_y, cur_x, y, x):
 
-                other_coords = tuple(cur_coords + d)
+                other_y, other_x = tuple((cur_y, cur_x) + d)
+
+                self.highlight(other_y, other_x, f'Look for {self.grid[y, x]} in {self.possibilities[other_y][other_x]}')
                 # get possibilities list at neighbour cell
-                other_possibilities = self.get_possibilities(other_coords)  # might contain num
+                other_possibilities = self.get_possibilities(other_y, other_x)  # might contain num
                 # get an updated list of possibilities at neighbour cell
-                valid_possibilities = self.update_possibilities(other_coords)
-                # check if num in neighbour, if so: remove it from neighbour and add it to the stack
+                valid_possibilities = self.update_possibilities(other_y, other_x)
+                # compare possibilities
                 for other_num in other_possibilities:
                     if other_num not in valid_possibilities:
-                        self.constrain(other_coords, other_num)
+                        self.constrain(other_y, other_x, other_num)
+                        if not self.check_if_valid(other_y, other_x):
+                            return False
                         # if the resulting list has length of 0 this means the collapsed cell can not be solved
                         # and we need to backtrack to the point before the cell is collapsed and try a different cell.
                         # if a cell is modified: add it to the stack
-                        if other_coords not in stack:
-                            stack.append(other_coords)
+                        if (other_y, other_x) not in stack:
+                            stack.append((other_y, other_x))
+        return True
 
+    def check_if_valid(self, y, x):
+        if len(self.possibilities[y][x]) == 0:
+            return False
+        return True
 
-
-
-
-
-
-    def constrain(self, coords, num):
-        y, x = coords
-        self.highlight(y, x, f'{num=}, {self.possibilities[y][x]}')
+    def constrain(self, y, x, num):
+        self.highlight(y, x, f'Constrain {num} in {self.possibilities[y][x]}')
         if num in self.possibilities[y][x]:
             self.possibilities[y][x].remove(num)
-        
 
-    def get_possibilities(self, coords) -> list:
-        y, x = coords
+    def get_possibilities(self, y, x) -> list:
         return self.possibilities[y][x]
 
-
     @staticmethod
-    def valid_dirs(coords, base_coords):
+    def valid_dirs(cy, cx, by, bx):
         UP = np.array((-1, 0))
         LEFT = np.array((0, -1))
         DOWN = np.array((1, 0))
@@ -165,42 +162,35 @@ class Wave(Solver):
         DOWN_LEFT = np.array((1, -1))
         DOWN_RIGHT = np.array((1, 1))
 
-        y, x = coords
-        by, bx = base_coords
-
         valid_directions = []
-        if y == by:
-            if x < 8:
+        if cy == by:
+            if cx < 8:
                 valid_directions.append(RIGHT)
-            if x > 0:
+            if cx > 0:
                 valid_directions.append(LEFT)
-        if x == bx:
-            if y < 8:
+        if cx == bx:
+            if cy < 8:
                 valid_directions.append(DOWN)
-            if y > 0:
+            if cy > 0:
                 valid_directions.append(UP)
-        if x // 3 == bx // 3 and y // 3 == by // 3:
-            if x % 3 < 2:
-                if y % 3 < 2:
+        if cx // 3 == bx // 3 and cy // 3 == by // 3:
+            if cx % 3 < 2:
+                if cy % 3 < 2:
                     valid_directions.append(DOWN_RIGHT)
-                if y % 3 > 0:
+                if cy % 3 > 0:
                     valid_directions.append(UP_RIGHT)
-            if x % 3 > 0:
-                if y % 3 < 2:
+            if cx % 3 > 0:
+                if cy % 3 < 2:
                     valid_directions.append(DOWN_LEFT)
-                if y % 3 > 0:
+                if cy % 3 > 0:
                     valid_directions.append(UP_LEFT)
 
         return valid_directions
 
 
 def main(stdscr):
-    curses.init_pair(1, curses.COLOR_RED, curses.COLOR_BLACK)
-    curses.init_pair(2, curses.COLOR_WHITE, curses.COLOR_BLACK)
-    stdscr.clear()
     w = Wave(stdscr, sleep=1)
     w.solve()
-
 
 
 if __name__ == '__main__':
