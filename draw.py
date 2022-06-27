@@ -1,6 +1,8 @@
+from __future__ import annotations
+
 import time
 import curses
-
+import numpy as np
 
 class Color:
     def __init__(self):
@@ -34,14 +36,15 @@ class Color:
         return pair
 
     def _get_pair(self, name: str):
+        # check if pair is initialized
         if name.upper() in self.pairs:
-            pair_number = self.pairs.index(name.upper()) + 1  # check if pair is initialized
+            pair_number = self.pairs.index(name.upper()) + 1
             return curses.color_pair(pair_number)
         else:
             raise NameError(f'{name.upper()} is not a recognized color pair')
 
     def _get_color(self, name: str):
-        if name.upper() in self.colors.keys():
+        if name.upper() in self.colors:
             color_number = self.colors[name.upper()]
             return color_number
         else:
@@ -70,15 +73,18 @@ class Color:
         self.colors[name.upper()] = color_number
 
 
-class Grid(Color):
-    def __init__(self, stdscr, grid, sleep=0.0):
+class TerminalPen:
+    """
+    Gets created by Grid class. Each Grid object has a TerminalPen object.
+    """
+    def __init__(self, stdscr: curses.window, grid: np.ndarray, sleep: int | float = 0.0):
         self.sleep = sleep
         self.grid = grid
         self.stdscr = stdscr
-        if stdscr is not None:
-            super(Grid, self).__init__()
-            self.highlights = []
-            stdscr.clear()
+
+        self.colorPicker = Color()
+
+        self.clear()
 
     def update(self, y: int, x: int, n: int, info: str = ''):
         """
@@ -98,7 +104,7 @@ class Grid(Color):
         for i, row in enumerate(self.grid):
             for j, value in enumerate(row):
                 if i == y and j == x:
-                    self.stdscr.addstr(y, x*3, str(n), self.color('RED'))
+                    self.stdscr.addstr(y, x*3, str(n), self.colorPicker.color('RED'))
                 else:
                     self.stdscr.addstr(i, j*3, str(self.grid[i, j]))
         self.stdscr.refresh()
@@ -141,31 +147,7 @@ class Grid(Color):
     def refresh(self):
         self.stdscr.refresh()
 
-    def highlight(self, y, x, info=''):
-        self.update(y, x, self.grid[y, x], info)
+    def getch(self):
+        self.stdscr.getch()
 
-    def add_highlight(self, coords):
-        self.highlights.append(coords)
-
-    def reset_highlights(self):
-        self.highlights = []
-
-    def draw_highlights(self, info: str = ''):
-
-        if self.sleep:
-            time.sleep(self.sleep)
-
-        self.clear()
-        self.display_info(info, len(self.grid))
-        for coord in self.highlights:
-            y, x = coord
-            for i, row in enumerate(self.grid):
-                for j, value in enumerate(row):
-                    if y == i and x == j:
-                        self.stdscr.addstr(i, j*3, str(self.grid[i, j]),
-                                           self.color(f'R{self.highlights.index((y, x))}',
-                                            (1000 - (self.highlights.index((y, x)) * 10), 0, 0)))
-                    else:
-                        self.stdscr.addstr(i, j*3, str(self.grid[i, j]))
-        self.refresh()
 
