@@ -1,11 +1,8 @@
 from __future__ import annotations
 
 import numpy as np
-import curses
-from curses import wrapper
 import random
-import copy
-from draw import TerminalPen
+from draw import TerminalPen, Window
 from typing import Optional
 
 
@@ -30,25 +27,24 @@ ex_grid2 = np.array([[4, 1, 0, 0, 0, 0, 0, 0, 6],
                      [6, 0, 0, 0, 7, 9, 1, 0, 0]])
 
 
-def main(stdscr, grid: Optional[np.ndarray] = None, sleep: int | float = 0, difficulty: int = 0):
+def main(grid: Optional[np.ndarray] = None, sleep: int | float = 0, difficulty: int = 0):
     """
     Main function for the program.
 
-    :param stdscr: curses window
     :param grid: Grid object that stores information about the grid and the pen
     :param sleep: time to sleep between updates
     :param difficulty: difficulty of the grid: 0 = easy, 1 = medium, 2 = hard (default: 0)
     """
+    with Window() as window:
+        if grid is None:
+            grid = Grid(window, sleep=sleep)
+            gen = Generator(grid, difficulty)
+            grid = gen.generate_grid()
+        else:
+            grid = Grid(window, values=grid, sleep=sleep)
 
-    if grid is None:
-        grid = Grid(stdscr, sleep=sleep)
-        gen = Generator(grid, difficulty)
-        grid = gen.generate_grid()
-    else:
-        grid = Grid(stdscr, values=grid, sleep=sleep)
-
-    s = Solver(grid)
-    s.solve_start()
+        s = Solver(grid)
+        s.solve_start()
 
 
 class Grid:
@@ -88,24 +84,27 @@ class Grid:
                     return False
         return True
 
-    def sum_around(self, y: int, x: int) -> int:
+    def count_around(self, y: int, x: int) -> int:
         """
         Get the sum of all numbers around a cell.
         :param y: y-coordinate in the grid (0-8)
         :param x: x-coordinate in the grid (0-8)
         :return: sum of all numbers around the cell
         """
-        sum = 0
-        # TODO count the numbers not the sum
+
+        count = 0
         for i in range(9):
-            sum += self.grid[y, i]
-            sum += self.grid[i, x]
+            if self.grid[y, i] != 0 or self.grid[i, x] != 0:
+                count += 1
+
         x0 = (x // 3) * 3
         y0 = (y // 3) * 3
+
         for i in range(3):
             for j in range(3):
-                sum += self.grid[y0 + i, x0 + j]
-        return sum
+                if self.grid[y0 + i, x0 + j] != 0:
+                    count += 1
+        return count
 
     def get_empty_cells(self) -> list[tuple[int, int]]:
         """
@@ -120,13 +119,10 @@ class Grid:
         return empty_cells
 
     def deepcopy(self) -> Grid:
-        return Grid(self.stdscr, self.grid)
+        return Grid(self.stdscr, self.grid, sleep=self.pen.sleep)
 
     def get_pen(self) -> TerminalPen:
         return self.pen
-
-    def get_window(self):
-        return self.stdscr
 
     def __getitem__(self, coords: tuple[int, int]) -> int:
         return self.grid[coords]
@@ -286,4 +282,4 @@ class Solver:
 # sleep is time to wait between each number changed (only used to see what is happening)
 # wrapper(main, grid=None, sleep=0)
 if __name__ == '__main__':
-    wrapper(main, sleep=0, difficulty=2)
+    main()

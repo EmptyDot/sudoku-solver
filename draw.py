@@ -75,9 +75,9 @@ class Color:
 
 class TerminalPen:
     """
-    Gets created by Grid class. Each Grid object has a TerminalPen object.
+    Is created by Grid class. Each Grid object has a TerminalPen object.
     """
-    def __init__(self, stdscr: curses.window, grid: np.ndarray, sleep: int | float = 0.0):
+    def __init__(self, stdscr, grid: np.ndarray, sleep: int | float = 0.0):
         self.sleep = sleep
         self.grid = grid
         self.stdscr = stdscr
@@ -149,5 +149,48 @@ class TerminalPen:
 
     def getch(self):
         self.stdscr.getch()
+
+
+class Window:
+    def __enter__(self):
+        self.stdscr = curses.initscr()
+        curses.noecho()
+        curses.cbreak()
+        self.stdscr.keypad(True)
+        return self.stdscr
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        curses.nocbreak()
+        self.stdscr.keypad(False)
+        curses.echo()
+        curses.endwin()
+
+    def getch(self):
+        return self.stdscr.getch()
+
+    def refresh(self):
+        self.stdscr.refresh()
+
+    def clear(self):
+        self.stdscr.clear()
+
+    def addstr(self, y, x, string):
+        self.stdscr.addstr(y, x, string)
+
+    def addch(self, y, x, char):
+        self.stdscr.addch(y, x, char)
+
+    def getmaxyx(self):
+        return self.stdscr.getmaxyx()
+
+    def getbegyx(self):
+        return self.stdscr.getbegyx()
+
+    def getyx(self):
+        return self.stdscr.getyx()
+
+    def move(self, y, x):
+        self.stdscr.move(y, x)
+
 
 
