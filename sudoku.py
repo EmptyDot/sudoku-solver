@@ -4,6 +4,7 @@ import numpy as np
 import random
 from draw import TerminalPen, Window
 from typing import Optional
+import time
 
 
 ex_grid = np.array([[5, 3, 0, 0, 7, 0, 0, 0, 0],
@@ -84,6 +85,41 @@ class Grid:
                     return False
         return True
 
+    def get_box(self, coords: tuple[int, int]) -> list[tuple[int, int]]:
+        """
+        Return the coordinates of the box that the cell is inside
+        :param coords: the coordinates of a cell
+        :return: a list of two tuples with (start, start) and (stop, stop). top left and bottom right cells
+        """
+        y, x = coords
+        start_y = (y // 3) * 3
+        start_x = (x // 3) * 3
+        stop_y = start_y + 3
+        stop_x = start_x + 3
+        return [(start_y, start_x), (stop_y, stop_x)]
+
+    def get_random_in_box(self, coords: tuple[int, int]) -> tuple[int, int]:
+        start, stop = self.get_box(coords)
+        start_y, start_x = start
+        stop_y, stop_x = stop
+        rand_y = random.randint(start_y, stop_y)
+        rand_x = random.randint(start_x, stop_x)
+        return rand_y, rand_x
+
+    def iter_box(self, coords: tuple[int, int]) -> tuple[int, int]:
+        start, stop = self.get_box(coords)
+        start_y, start_x = start
+        stop_y, stop_x = stop
+        for y in range(start_y, stop_y):
+            for x in range(start_x, stop_x):
+                yield y, x
+
+    def iter_all_boxes(self):
+        for i in range(0, 9, 3):
+            for j in range(0, 9, 3):
+                for k in self.iter_box((i, j)):
+                    yield k
+
     def count_around(self, y: int, x: int) -> int:
         """
         Get the sum of all numbers around a cell.
@@ -149,7 +185,8 @@ class Generator:
             self.fill_box(i)
         self.fill_grid()
         self.remove_boxes()
-        self.pen.draw_grid(info=f'Grid generation done!\nPress any key to show solve. {len(self.grid.get_empty_cells())} empty cells.')
+        self.remove_cells()
+        self.pen.draw_grid()
         self.pen.getch()
         return self.grid
 
@@ -217,10 +254,7 @@ class Generator:
                 n = self.grid[y, x]
                 self.pen.put(y, x, 0, f'Removing... {counter}')
 
-                _copy = self.grid.deepcopy()  # make a copy
-
-                self.solutions = 0
-                self.solve_for_solutions(_copy)  # solve to get number of solutions
+                self.get_solutions()
 
                 if self.solutions > 1:
                     start_counter = True
@@ -230,6 +264,40 @@ class Generator:
                         return
             if start_counter:
                 counter += 1
+
+    def remove_cells(self):
+
+        while True:
+            removed = []
+            dt = 0
+            maxtime = 5
+            for y in range(9):
+                for x in range(9):
+                    if self.grid[y, x] != 0:
+
+                        n = self.grid[y, x]
+                        self.pen.put(y, x, 0)
+                        t0 = time.time()
+                        self.get_solutions()
+                        t1 = time.time()
+                        dt = max(dt, t1 - t0)
+                        if self.solutions > 1:
+                            self.pen.put(y, x, n)
+                        else:
+                            removed.append((y, x))
+
+            if not removed or dt > maxtime:
+                break
+
+    def get_solutions(self):
+        """
+        Make a copy of the grid and solve the copy
+        :return: The number of solutions
+        """
+        _copy = self.grid.deepcopy()  # make a copy
+        self.solutions = 0
+        self.solve_for_solutions(_copy)  # solve to get number of solutions
+        return self.solutions
 
     def solve_for_solutions(self, grid_copy: Grid):
         """
