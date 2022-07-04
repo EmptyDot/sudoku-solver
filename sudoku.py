@@ -85,7 +85,6 @@ class Grid:
                     return False
         return True
 
-<<<<<<< HEAD
     def get_box(self, coords: tuple[int, int]) -> list[tuple[int, int]]:
         """
         Return the coordinates of the box that the cell is inside
@@ -98,7 +97,6 @@ class Grid:
         stop_y = start_y + 3
         stop_x = start_x + 3
         return [(start_y, start_x), (stop_y, stop_x)]
-
 
     def get_random_in_box(self, coords: tuple[int, int]) -> tuple[int, int]:
         start, stop = self.get_box(coords)
@@ -123,10 +121,6 @@ class Grid:
                 for k in self.iter_box((i, j)):
                     yield k
 
-
-    def deepcopy(self):
-        return Grid(self.stdscr, self.grid)
-=======
     def count_around(self, y: int, x: int) -> int:
         """
         Get the sum of all numbers around a cell.
@@ -163,7 +157,6 @@ class Grid:
 
     def deepcopy(self) -> Grid:
         return Grid(self.stdscr, self.grid, sleep=self.pen.sleep)
->>>>>>> 2b7f4f42222023e8a536af4e6825312a704f4a86
 
     def get_pen(self) -> TerminalPen:
         return self.pen
@@ -193,12 +186,8 @@ class Generator:
             self.fill_box(i)
         self.fill_grid()
         self.remove_boxes()
-<<<<<<< HEAD
         self.remove_cells()
         self.pen.draw_grid()
-=======
-        self.pen.draw_grid(info=f'Grid generation done!\nPress any key to show solve. {len(self.grid.get_empty_cells())} empty cells.')
->>>>>>> 2b7f4f42222023e8a536af4e6825312a704f4a86
         self.pen.getch()
         return self.grid
 
@@ -276,7 +265,6 @@ class Generator:
                         return
             if start_counter:
                 counter += 1
-
 
     def remove_cells(self):
 
