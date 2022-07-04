@@ -106,7 +106,6 @@ class Grid:
         rand_x = random.randint(start_x, stop_x)
         return rand_y, rand_x
 
-
     def iter_box(self, coords: tuple[int, int]) -> tuple[int, int]:
         start, stop = self.get_box(coords)
         start_y, start_x = start
