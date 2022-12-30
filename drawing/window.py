@@ -1,9 +1,10 @@
 import curses
 from terminal_pen import TerminalPen
+
+
 class Window:
     def __enter__(self):
         self.stdscr = curses.initscr()
-        self.pen = TerminalPen(self.stdscr)
         curses.noecho()
         curses.cbreak()
         self.stdscr.keypad(True)

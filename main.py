@@ -2,8 +2,9 @@ import solver
 from drawing.terminal_pen import TerminalPen
 from grid import Grid
 from curses import wrapper
+from drawing.window import Window
 
-def main(stdscr, grid: Optional[np.ndarray] = None, sleep: int | float = 0, difficulty: int = 0):
+def main(grid: Optional[np.ndarray] = None, sleep: int | float = 0, difficulty: int = 0):
     """
     Main function for the program.
 
@@ -11,10 +12,12 @@ def main(stdscr, grid: Optional[np.ndarray] = None, sleep: int | float = 0, diff
     :param sleep: time to sleep between updates
     :param difficulty: difficulty of the grid: 0 = easy, 1 = medium, 2 = hard (default: 0)
     """
-    grid = Grid() # Optional generation here
-    pen = TerminalPen(stdscr, grid)
-    for y, x, n in solver.solve(grid):
-        pen.put(y, x, n)
+    with Window as stdscr:
+        grid = Grid() # Optional generation here
+        pen = TerminalPen(stdscr, grid)
+        for y, x, n in solver.solve(grid):
+            pen.put(y, x, n)
+
 
     pen.draw_grid()
     pen.getch()
@@ -32,4 +35,4 @@ def get_grid():
 
 
 if __name__ == '__main__':
-    wrapper(main, )
+    main()
