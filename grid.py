@@ -1,6 +1,6 @@
 from typing import Optional
 import numpy as np
-
+from aliases import Coord
 
 
 class Grid:
@@ -38,18 +38,19 @@ class Grid:
                     return False
         return True
 
-    def get_box(self, coords: tuple[int, int]) -> list[tuple[int, int]]:
+    def get_box(self, coords: Coord) -> tuple[Coord, Coord]:
         """
         Return the coordinates of the box that the cell is inside
         :param coords: the coordinates of a cell
-        :return: a list of two tuples with (start, start) and (stop, stop). top left and bottom right cells
+        :return: a tuple of two tuples with (start, start) and (stop, stop). top left and bottom right cells
         """
         y, x = coords
         start_y = (y // 3) * 3
         start_x = (x // 3) * 3
         stop_y = start_y + 3
         stop_x = start_x + 3
-        return [(start_y, start_x), (stop_y, stop_x)]
+
+        return (start_y, start_x), (stop_y, stop_x)
 
     def get_random_in_box(self, coords: tuple[int, int]) -> tuple[int, int]:
         start, stop = self.get_box(coords)

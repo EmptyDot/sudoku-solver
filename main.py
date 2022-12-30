@@ -13,11 +13,10 @@ def main(grid: Optional[np.ndarray] = None, sleep: int | float = 0, difficulty: 
     :param difficulty: difficulty of the grid: 0 = easy, 1 = medium, 2 = hard (default: 0)
     """
     with Window as stdscr:
-        grid = Grid() # Optional generation here
+        grid = Grid()  # Optional generation here
         pen = TerminalPen(stdscr, grid)
         for y, x, n in solver.solve(grid):
             pen.put(y, x, n)
-
 
     pen.draw_grid()
     pen.getch()
