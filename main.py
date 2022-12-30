@@ -11,7 +11,7 @@ def main(stdscr, grid: Optional[np.ndarray] = None, sleep: int | float = 0, diff
     :param sleep: time to sleep between updates
     :param difficulty: difficulty of the grid: 0 = easy, 1 = medium, 2 = hard (default: 0)
     """
-    grid = Grid() # Optional generation here
+    grid = Grid()  # Optional generation here
     pen = TerminalPen(stdscr, grid)
     for y, x, n in solver.solve(grid):
         pen.put(y, x, n)

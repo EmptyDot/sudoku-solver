@@ -1,2 +1,1 @@
 numpy>=1.23.0
-windows-curses>=2.3.0
