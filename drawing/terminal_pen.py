@@ -1,76 +1,56 @@
-import time
+import curses
 import numpy as np
 
-
-
+from aliases import Coord
+from grid import Grid
 
 class TerminalPen:
     """
     Is created by Grid class. Each Grid object has a TerminalPen object.
     """
-    def __init__(self, stdscr, grid: np.ndarray, sleep: int | float = 0.0):
-        self.sleep = sleep
-        self.grid = grid
+    def __init__(self, stdscr):
         self.stdscr = stdscr
 
-        self.colorPicker = Color()
+        curses.init_pair(100, curses.COLOR_RED, curses.COLOR_BLACK)
+        self.red = curses.color_pair(100)
 
         self.clear()
 
-    def update(self, y: int, x: int, n: int, info: str = ''):
+    def draw_grid(self, grid: Grid, info: str = ''):
         """
-        Update the terminal to show a change in self.grid
-
-        :param y: y-coordinate in the grid (0-8)
-        :param x: x-coordinate in the grid (0-8)
-        :param n: a number to update to (1-9)
-        :param info: status message to show in the terminal
-        """
-        if self.sleep:
-            time.sleep(self.sleep)
-
-        self.clear()
-        self.display_info(info, len(self.grid))
-
-        for i, row in enumerate(self.grid):
-            for j, value in enumerate(row):
-                if i == y and j == x:
-                    self.stdscr.addstr(y, x*3, str(n), self.colorPicker.color('RED'))
-                else:
-                    self.stdscr.addstr(i, j*3, str(self.grid[i, j]))
-        self.stdscr.refresh()
-
-    def draw_grid(self, info: str = ''):
-        """
-        Show self.grid in the terminal
-
+        Draw the grid
+        :param grid:
         :param info: status message to show in the terminal
         """
 
         self.clear()
-        self.display_info(info, len(self.grid))
+        if info:
+            self.display_info(len(grid), info=info)
 
-        for i, row in enumerate(self.grid):
+        for i, row in enumerate(grid):
             for j, value in enumerate(row):
-                self.stdscr.addstr(i, j*3, str(self.grid[i, j]))
+                self.stdscr.addstr(i, j*3, str(grid[i, j]))
         self.refresh()
 
-    def put(self, y: int, x: int, n: int, info: str = ''):
-        """
-        Change a number in grid and update the terminal.
+    def put(self, grid: Grid, coords: Coord, n: int, info: str = ''):
 
-        :param y: y-coordinate in the grid (0-8)
-        :param x: x-coordinate in the grid (0-8)
-        :param n: a number to change (1-9)
-        :param info: status message to show in the terminal
-        """
-        self.grid[y, x] = n
-        self.update(y, x, n, info=info)
+        y, x = coords
 
-    def display_info(self, info='', y=None):
-        if y is None:
-            y = len(self.grid)
-        self.stdscr.addstr(y, 0, info)
+        self.clear()
+        if info:
+            self.display_info(len(grid), info=info)
+
+        for i, row in enumerate(grid):
+            for j, value in enumerate(row):
+                if i == y and j == x:
+                    self.stdscr.addstr(y, x * 3, str(n), self.red)
+                else:
+                    self.stdscr.addstr(i, j * 3, str(grid[i, j]))
+        self.refresh()
+
+    def display_info(self, offset_vertical: int = 0, offset_horizontal: int = 0, info: str = ''):
+        self.stdscr.addstr(offset_vertical, offset_horizontal, info)
+
 
     def clear(self):
         self.stdscr.clear()

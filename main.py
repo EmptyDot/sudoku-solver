@@ -3,35 +3,31 @@ from drawing.terminal_pen import TerminalPen
 from grid import Grid
 from curses import wrapper
 from drawing.window import Window
+from typing import Optional
+import numpy as np
+from generator import Generator
 
-def main(grid: Optional[np.ndarray] = None, sleep: int | float = 0, difficulty: int = 0):
+
+def main(stdscr, values: Optional[np.ndarray] = None):
     """
     Main function for the program.
+    :param stdscr: curses window
+    :param values: numpy array that stores information about the grid, leave null to generate a new sudoku board
 
-    :param grid: Grid object that stores information about the grid and the pen
-    :param sleep: time to sleep between updates
-    :param difficulty: difficulty of the grid: 0 = easy, 1 = medium, 2 = hard (default: 0)
     """
-    with Window as stdscr:
-        grid = Grid()  # Optional generation here
-        pen = TerminalPen(stdscr, grid)
-        for y, x, n in solver.solve(grid):
-            pen.put(y, x, n)
+    pen = TerminalPen(stdscr)
 
-    pen.draw_grid()
+    if values is None:
+        grid, pen = Generator().generate_grid(pen)
+    else:
+        grid = Grid(values)
+
+
+    for y, x, n in solver.solve(grid):
+        pen.put(grid, (y, x), n, "Solving...")
+    pen.draw_grid(grid, "Done!")
     pen.getch()
 
 
-
-
-def get_grid():
-    if grid is None:
-        grid = Grid(stdscr, sleep=sleep)
-        gen = Generator(grid, difficulty)
-        grid = gen.generate_grid()
-    else:
-        grid = Grid(stdscr, values=grid, sleep=sleep)
-
-
 if __name__ == '__main__':
-    main()
+    wrapper(main)

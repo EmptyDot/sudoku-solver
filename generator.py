@@ -1,16 +1,16 @@
-
-
-
+import numpy as np
+import random
+from drawing.terminal_pen import TerminalPen
+from grid import Grid
 
 class Generator:
     """
     Generator will be created by main if grid is None
     """
-    def __init__(self, grid: Grid, difficulty: int = 0):
-        self.grid = grid
-        self.pen = grid.get_pen()
+    def __init__(self, pen: TerminalPen):
+        self.grid = Grid(np.zeros((9, 9), dtype=int))
+        self.pen = pen
         self.solutions = 0
-        self.difficulty = difficulty
 
     def generate_grid(self) -> Grid:
         """
@@ -21,7 +21,7 @@ class Generator:
         self.fill_grid()
         self.remove_boxes()
         self.remove_cells()
-        self.pen.draw_grid()
+        self.pen.draw_grid(self.grid)
         self.pen.getch()
         return self.grid
 
@@ -38,7 +38,7 @@ class Generator:
         for y in range(start, stop):
             for x in range(start, stop):
                 n = random.choice(numbers)
-                self.pen.put(y, x, n, 'Filling...')
+                self.pen.put(self.grid, (y, x), n, 'Filling boxes...')
                 numbers.remove(n)
         return
 
@@ -53,11 +53,11 @@ class Generator:
                     random.shuffle(nums)
                     for n in nums:
                         if self.grid.possible(y, x, n):
-                            self.pen.put(y, x, n, 'Filling...')
+                            self.pen.put(y, x, n, 'Filling grid...')
                             self.fill_grid()
                             if self.grid.is_filled():
                                 return
-                            self.pen.put(y, x, 0, 'Filling...')
+                            self.pen.put(y, x, 0, 'Filling grid...')
                     return
         return
 

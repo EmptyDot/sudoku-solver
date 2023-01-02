@@ -1,11 +1,11 @@
-from typing import Optional
+from typing import Optional, Self
 import numpy as np
 from aliases import Coord
-
+import random
 
 class Grid:
-    def __init__(self, values: Optional[np.ndarray] = None):
-        self.grid = np.zeros((9, 9), dtype=int) if values is None else values
+    def __init__(self, values: np.ndarray):
+        self.grid = values
 
     def possible(self, y: int, x: int, n: int) -> bool:
         """
@@ -52,7 +52,7 @@ class Grid:
 
         return (start_y, start_x), (stop_y, stop_x)
 
-    def get_random_in_box(self, coords: tuple[int, int]) -> tuple[int, int]:
+    def get_random_in_box(self, coords: Coord) -> Coord:
         start, stop = self.get_box(coords)
         start_y, start_x = start
         stop_y, stop_x = stop
@@ -108,14 +108,14 @@ class Grid:
                     empty_cells.append((y, x))
         return empty_cells
 
-    def deepcopy(self) -> Grid:
+    def deepcopy(self) -> Self:
         return Grid(self.stdscr, self.grid, sleep=self.pen.sleep)
 
-    def get_pen(self) -> TerminalPen:
-        return self.pen
-
-    def __getitem__(self, coords: tuple[int, int]) -> int:
+    def __getitem__(self, coords: Coord) -> int:
         return self.grid[coords]
 
-    def __setitem__(self, key: tuple[int, int], value: int):
-        self.grid[key] = value
+    def __setitem__(self, coords: Coord, value: int):
+        self.grid[coords] = value
+
+    def __len__(self):
+        return len(self.grid)

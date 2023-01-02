@@ -1,5 +1,5 @@
 import curses
-from terminal_pen import TerminalPen
+
 
 
 class Window:
